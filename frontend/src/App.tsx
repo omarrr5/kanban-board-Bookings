@@ -10,20 +10,10 @@ interface Task {
   age: string;
   email: string;
   mobile: string;
-  status: TaskStatus;
-}
-
-export type TaskStatus = "unclaimed" | "firstContact" | "preparingWorkOffer" | "sendToTherapist";
-
-interface InitialTasks {
-  unclaimed: Task[];
-  firstContact: Task[];
-  preparingWorkOffer: Task[];
-  sendToTherapist: Task[];
 }
 
 const App: React.FC = () => {
-  const [tasks, setTasks] = useState<InitialTasks>({
+  const [tasks, setTasks] = useState({
     unclaimed: [] as Task[],
     firstContact: [] as Task[],
     preparingWorkOffer: [] as Task[],
@@ -36,7 +26,6 @@ const App: React.FC = () => {
     const task: Task = {
       ...formData,
       id: new Date().toISOString(),
-      status: "unclaimed", // Set the initial status to "unclaimed"
     };
 
     setTasks((prev) => ({
@@ -47,37 +36,18 @@ const App: React.FC = () => {
 
   const updateTask = (updatedTask: Task, newStatus: string) => {
     setTasks((prev) => {
-      // Check if the task exists in the previous state before proceeding
-      const existingTask = prev.unclaimed.find((task) => task.id === updatedTask.id);
+      // Remove task from its current status
+      const updatedTasks = { ...prev };
+      Object.keys(prev).forEach((status) => {
+        updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
+          (task) => task.id !== updatedTask.id
+        );
+      });
 
-      if (existingTask) {
-        // Task exists, proceed with update logic
-        if (newStatus === 'unclaimed') {
-          const taskIndex = prev.unclaimed.findIndex((task) => task.id === updatedTask.id);
-          if (taskIndex !== -1) {
-            prev.unclaimed[taskIndex] = updatedTask;
-            return prev;
-          }
-        } else {
-          // Remove the task from its current status
-          const updatedTasks = { ...prev };
-          Object.keys(updatedTasks).forEach((status) => {
-            updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
-              (task) => task.id !== updatedTask.id
-            );
-          });
+      // Add task to the new status
+      updatedTasks[newStatus as keyof typeof tasks].push(updatedTask);
 
-          // Add the task to the new status
-          updatedTasks[newStatus as keyof typeof tasks].push(updatedTask);
-
-          return updatedTasks;
-        }
-      } else {
-        // Handle the case where the task doesn't exist
-        console.warn("Task not found:", updatedTask.id);
-        // You can optionally return the previous state to avoid unnecessary updates
-        return prev;
-      }
+      return updatedTasks;
     });
 
     setSelectedTask(null); // Close popup
@@ -94,7 +64,7 @@ const App: React.FC = () => {
       return updatedTasks;
     });
 
-    setSelectedTask(null); 
+    setSelectedTask(null); // Close popup
   };
 
   return (
