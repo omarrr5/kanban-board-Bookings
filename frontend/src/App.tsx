@@ -95,6 +95,7 @@ const App: React.FC = () => {
           onClose={() => setSelectedTask(null)}
         />
       )}
+      <p>Developed by Omar Khalaf | Full Stack Developer</p>
     </div>
   );
 };

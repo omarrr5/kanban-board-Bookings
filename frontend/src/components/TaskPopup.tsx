@@ -26,15 +26,15 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
   onClose,
 }) => {
   const [formData, setFormData] = useState(task);
-  const [newStatus, setNewStatus] = useState(task.title); 
+  const [newStatus, setNewStatus] = useState(task.title);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-md w-1/3 relative">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-lg relative">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -65,7 +65,7 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
           placeholder="Email"
         />
 
-        {/* Dropdown */}
+        {/* Dropdown for Status */}
         <select
           value={newStatus}
           onChange={(e) => setNewStatus(e.target.value)}
@@ -79,16 +79,16 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
         </select>
 
         {/* Action buttons */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 mt-4">
           <button
             onClick={() => onUpdate(formData, newStatus)}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Save
           </button>
           <button
             onClick={() => onDelete(task.id)}
-            className="px-4 py-2 bg-red-500 text-white rounded"
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
           >
             Delete
           </button>
