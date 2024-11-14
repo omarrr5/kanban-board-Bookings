@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../API/ApiProvider';
 
 interface FormData {
   name: string;
@@ -6,6 +7,7 @@ interface FormData {
   age: string;
   email: string;
   mobile: string;
+  status: string;  
 }
 
 interface FormErrors {
@@ -27,9 +29,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ onSubmit }) => {
     age: '',
     email: '',
     mobile: '',
+    status: 'unclaimed', 
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState(false);  
+  const [submitError, setSubmitError] = useState<string | null>(null);  
 
   const validate = (): FormErrors => {
     const newErrors: FormErrors = {};
@@ -41,21 +46,32 @@ const BookingForm: React.FC<BookingFormProps> = ({ onSubmit }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit(formData);
+      setLoading(true);
+      setSubmitError(null);
 
-      setFormData({
-        name: '',
-        title: '',
-        age: '',
-        email: '',
-        mobile: '',
-      });
+      try {
+        const response = await api.post('/tasks', formData);
+        onSubmit(formData);  
+        setFormData({
+          name: '',
+          title: '',
+          age: '',
+          email: '',
+          mobile: '',
+          status: 'unclaimed', 
+        });
+      } catch (error) {
+        console.error('Error creating task:', error);
+        setSubmitError('An error occurred while submitting the form.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -88,11 +104,13 @@ const BookingForm: React.FC<BookingFormProps> = ({ onSubmit }) => {
           )}
         </div>
       ))}
+      {submitError && <p className="text-sm text-red-500">{submitError}</p>}
       <button
         type="submit"
         className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+        disabled={loading}
       >
-        Submit
+        {loading ? 'Submitting...' : 'Submit'}
       </button>
     </form>
   );
