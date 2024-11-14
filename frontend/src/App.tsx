@@ -26,7 +26,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch tasks initially or whenever needed
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -50,38 +49,35 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTasks(); // Initial fetch when the component mounts
+    fetchTasks(); 
   }, []);
 
-  // Handle adding tasks (moved here from BookingForm)
   const addTaskToUnclaimed = async (formData: Omit<Task, "id">) => {
     try {
       await api.post("/tasks", formData);
-      fetchTasks(); // Re-fetch tasks after adding a new one
+      fetchTasks(); 
     } catch (err) {
       setError("Failed to add task.");
       console.error(err);
     }
   };
 
-  // Handle updating tasks
   const updateTask = async (updatedTask: Task, newStatus: string) => {
     try {
       await api.put(`/tasks/${updatedTask.id}`, { ...updatedTask, status: newStatus });
-      fetchTasks(); // Re-fetch tasks after updating a task
-      setSelectedTask(null); // Close the task popup after update
+      fetchTasks(); 
+      setSelectedTask(null); 
     } catch (err) {
       setError("Failed to update task.");
       console.error(err);
     }
   };
 
-  // Handle deleting tasks
   const deleteTask = async (taskId: string) => {
     try {
-      await api.delete(`/tasks/${taskId}`); // API call to delete the task
-      fetchTasks(); // Re-fetch tasks after deletion
-      setSelectedTask(null); // Close the task popup after deletion
+      await api.delete(`/tasks/${taskId}`); 
+      fetchTasks(); 
+      setSelectedTask(null); 
     } catch (err) {
       setError("Failed to delete task.");
       console.error(err);
@@ -109,8 +105,8 @@ const App: React.FC = () => {
 
         <div className="flex-grow">
           <KanbanBoard
-            tasks={tasks} // Passing tasks down to KanbanBoard
-            onTaskClick={(task) => setSelectedTask(task)} // Handling task click
+            tasks={tasks} 
+            onTaskClick={(task) => setSelectedTask(task)} 
           />
         </div>
       </div>
@@ -118,7 +114,7 @@ const App: React.FC = () => {
       {selectedTask && (
         <TaskPopup
           task={selectedTask}
-          statuses={Object.keys(tasks)} // Pass task statuses here
+          statuses={Object.keys(tasks)} 
           onUpdate={updateTask}
           onDelete={deleteTask}
           onClose={() => setSelectedTask(null)}
