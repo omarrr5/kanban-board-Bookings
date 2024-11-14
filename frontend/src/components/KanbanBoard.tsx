@@ -27,9 +27,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTaskClick }) => {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {Object.keys(tasks).map((status) => (
         <div key={status} className="bg-white p-4 rounded-lg shadow-md">
+          {/* Status Header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-l font-semibold">
               {formatStatusName(status)}
@@ -39,6 +40,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTaskClick }) => {
             </span>
           </div>
 
+          {/* Task List */}
           <ul className="max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
             {tasks[status as keyof typeof tasks].map((task) => (
               <li
@@ -46,8 +48,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTaskClick }) => {
                 className="mt-2 p-4 border rounded cursor-pointer"
                 onClick={() => onTaskClick(task)}
               >
-                <div className="flex items-center mb-2">
-                  <p className="font-bold mr-10">{task.name}</p>
+                <div className="flex flex-col md:flex-row items-start md:items-center mb-2">
+                  <p className="font-bold mr-4">{task.name}</p>
                   <p className="font-normal text-sm">{task.age} yo</p>
                 </div>
 
