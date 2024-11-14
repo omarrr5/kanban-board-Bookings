@@ -8,6 +8,7 @@ interface Task {
   age: string;
   email: string;
   mobile: string;
+  status: string; 
 }
 
 interface TaskPopupProps {
@@ -25,8 +26,8 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
   onDelete,
   onClose,
 }) => {
-  const [formData, setFormData] = useState(task);
-  const [newStatus, setNewStatus] = useState(task.title);
+  const [formData, setFormData] = useState<Task>(task); 
+  const [newStatus, setNewStatus] = useState<string>(task.status); 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -81,13 +82,13 @@ const TaskPopup: React.FC<TaskPopupProps> = ({
         {/* Action buttons */}
         <div className="flex justify-end gap-3 mt-4">
           <button
-            onClick={() => onUpdate(formData, newStatus)}
+            onClick={() => onUpdate(formData, newStatus)} 
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Save
           </button>
           <button
-            onClick={() => onDelete(task.id)}
+            onClick={() => onDelete(task.id)} 
             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
           >
             Delete

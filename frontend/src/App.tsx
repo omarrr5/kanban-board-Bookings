@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import api from "./API/ApiProvider"; 
 import KanbanBoard from "./components/KanbanBoard";
 import BookingForm from "./components/BookingForm";
 import TaskPopup from "./components/TaskPopup";
@@ -10,6 +11,7 @@ interface Task {
   age: string;
   email: string;
   mobile: string;
+  status: string; 
 }
 
 const App: React.FC = () => {
@@ -21,51 +23,106 @@ const App: React.FC = () => {
   });
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addTaskToUnclaimed = (formData: Omit<Task, "id">) => {
-    const task: Task = {
-      ...formData,
-      id: new Date().toISOString(),
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get("/tasks");
+        const data = response.data;
+
+        const organizedTasks = {
+          unclaimed: data.filter((task: Task) => task.status === "unclaimed"),
+          firstContact: data.filter((task: Task) => task.status === "firstContact"),
+          preparingWorkOffer: data.filter((task: Task) => task.status === "preparingWorkOffer"),
+          sendToTherapist: data.filter((task: Task) => task.status === "sendToTherapist"),
+        };
+
+        setTasks(organizedTasks); 
+      } catch (err) {
+        setError("Failed to load tasks.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setTasks((prev) => ({
-      ...prev,
-      unclaimed: [...prev.unclaimed, task],
-    }));
+    fetchTasks();
+  }, []);
+
+  // Handle adding tasks
+  const addTaskToUnclaimed = async (formData: Omit<Task, "id">) => {
+    try {
+      const response = await api.post("/tasks", formData); 
+      const newTask = response.data;
+      setTasks((prev) => ({
+        ...prev,
+        unclaimed: [...prev.unclaimed, newTask],
+      }));
+    } catch (err) {
+      setError("Failed to add task.");
+      console.error(err);
+    }
   };
 
-  const updateTask = (updatedTask: Task, newStatus: string) => {
-    setTasks((prev) => {
-      // Remove task from its current status
-      const updatedTasks = { ...prev };
-      Object.keys(prev).forEach((status) => {
-        updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
-          (task) => task.id !== updatedTask.id
-        );
+  // Handle updating tasks
+  const updateTask = async (updatedTask: Task, newStatus: string) => {
+    try {
+      // Update the task via the API
+      const response = await api.put(`/tasks/${updatedTask.id}`, { ...updatedTask, status: newStatus });
+      const updatedTaskData = response.data;
+
+      setTasks((prev) => {
+        const updatedTasks = { ...prev };
+        // Remove the task from its old status
+        Object.keys(prev).forEach((status) => {
+          updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
+            (task) => task.id !== updatedTaskData.id
+          );
+        });
+
+        // Add the updated task to its new status
+        updatedTasks[newStatus as keyof typeof tasks].push(updatedTaskData);
+        return updatedTasks;
       });
 
-      // Add task to the new status
-      updatedTasks[newStatus as keyof typeof tasks].push(updatedTask);
-
-      return updatedTasks;
-    });
-
-    setSelectedTask(null); // Close popup
+      setSelectedTask(null);
+    } catch (err) {
+      setError("Failed to update task.");
+      console.error(err);
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    setTasks((prev) => {
-      const updatedTasks = { ...prev };
-      Object.keys(prev).forEach((status) => {
-        updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
-          (task) => task.id !== taskId
-        );
+  // Handle deleting tasks
+  const deleteTask = async (taskId: string) => {
+    try {
+      await api.delete(`/tasks/${taskId}`); // API call to delete the task
+      setTasks((prev) => {
+        const updatedTasks = { ...prev };
+        Object.keys(prev).forEach((status) => {
+          updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
+            (task) => task.id !== taskId
+          );
+        });
+        return updatedTasks;
       });
-      return updatedTasks;
-    });
 
-    setSelectedTask(null); // Close popup
+      setSelectedTask(null);
+    } catch (err) {
+      setError("Failed to delete task.");
+      console.error(err);
+    }
   };
+
+  if (loading) {
+    return <p>Loading tasks...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <div
@@ -80,8 +137,8 @@ const App: React.FC = () => {
 
         <div className="flex-grow">
           <KanbanBoard
-            tasks={tasks}
-            onTaskClick={(task) => setSelectedTask(task)}
+            tasks={tasks} // Passing tasks down to KanbanBoard
+            onTaskClick={(task) => setSelectedTask(task)} // Handling task click
           />
         </div>
       </div>
@@ -89,7 +146,7 @@ const App: React.FC = () => {
       {selectedTask && (
         <TaskPopup
           task={selectedTask}
-          statuses={Object.keys(tasks)}
+          statuses={Object.keys(tasks)} // Pass task statuses here
           onUpdate={updateTask}
           onDelete={deleteTask}
           onClose={() => setSelectedTask(null)}

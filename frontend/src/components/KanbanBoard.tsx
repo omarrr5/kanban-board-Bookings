@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "../API/ApiProvider";
 
 interface Task {
   id: string;
@@ -7,6 +8,7 @@ interface Task {
   age: string;
   email: string;
   mobile: string;
+  status: string; 
 }
 
 interface KanbanBoardProps {
@@ -19,12 +21,58 @@ interface KanbanBoardProps {
   onTaskClick: (task: Task) => void;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTaskClick }) => {
+
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick }) => {
+  const [tasks, setTasks] = useState({
+    unclaimed: [] as Task[],
+    firstContact: [] as Task[],
+    preparingWorkOffer: [] as Task[],
+    sendToTherapist: [] as Task[],
+  });
+  
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Format the status name
   const formatStatusName = (status: string) => {
     return status
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase());
   };
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get("/tasks"); 
+        const data = response.data;
+
+        const organizedTasks = {
+          unclaimed: data.filter((task: Task) => task.status === "unclaimed"),
+          firstContact: data.filter((task: Task) => task.status === "firstContact"),
+          preparingWorkOffer: data.filter((task: Task) => task.status === "preparingWorkOffer"),
+          sendToTherapist: data.filter((task: Task) => task.status === "sendToTherapist"),
+        };
+
+        setTasks(organizedTasks);  
+      } catch (err) {
+        setError("Failed to load tasks.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  if (loading) {
+    return <p>Loading tasks...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
