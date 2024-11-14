@@ -32,11 +32,12 @@ DB_PASSWORD=
 
 php artisan migrate
 php artisan serve
+---
 
 ## 1. Frontend Setup (React)
 
 ### Step 1: Clone the Repository
-
+```bash
 First, clone the React repository.
 cd frontend
 npm install
