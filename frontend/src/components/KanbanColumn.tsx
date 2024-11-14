@@ -8,12 +8,12 @@ interface Task {
   mobile: string;
 }
 
-interface KanbanColumnProps {
+interface KanbanCardProps {
   title: string;
   tasks: Task[];
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, tasks }) => {
+const KanbanCard: React.FC<KanbanCardProps> = ({ title, tasks }) => {
   return (
     <div className="bg-gray-200 p-4 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
@@ -36,4 +36,4 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, tasks }) => {
   );
 };
 
-export default KanbanColumn;
+export default KanbanCard;

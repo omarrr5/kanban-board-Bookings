@@ -45,7 +45,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks }) => {
               {tasks[status as keyof typeof tasks].map((task) => (
                 <li key={task.id} className="mt-2 p-4 border rounded">
                   <div className="flex items-center mb-2">
-                    <p className="font-bold mr-20">{task.name}</p>
+                    <p className="font-bold mr-10">{task.name}</p>
                     <p className="font-normal text-sm">{task.age} yo</p>
                   </div>
 

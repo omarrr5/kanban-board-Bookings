@@ -74,7 +74,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ onSubmit }) => {
             {field}
           </label>
           <input
-            type={field === 'age' || field === 'mobile' ? 'number' : 'text'}
+            type={field === 'age' || field === 'mobile' ? 'tel' : 'text'}
             name={field}
             id={field}
             value={formData[field as keyof FormData]}
