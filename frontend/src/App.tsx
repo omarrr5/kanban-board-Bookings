@@ -26,41 +26,38 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch tasks initially or whenever needed
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/tasks");
+      const data = response.data;
+
+      const organizedTasks = {
+        unclaimed: data.filter((task: Task) => task.status === "unclaimed"),
+        firstContact: data.filter((task: Task) => task.status === "firstContact"),
+        preparingWorkOffer: data.filter((task: Task) => task.status === "preparingWorkOffer"),
+        sendToTherapist: data.filter((task: Task) => task.status === "sendToTherapist"),
+      };
+
+      setTasks(organizedTasks);
+    } catch (err) {
+      setError("Failed to load tasks.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get("/tasks");
-        const data = response.data;
-
-        const organizedTasks = {
-          unclaimed: data.filter((task: Task) => task.status === "unclaimed"),
-          firstContact: data.filter((task: Task) => task.status === "firstContact"),
-          preparingWorkOffer: data.filter((task: Task) => task.status === "preparingWorkOffer"),
-          sendToTherapist: data.filter((task: Task) => task.status === "sendToTherapist"),
-        };
-
-        setTasks(organizedTasks); 
-      } catch (err) {
-        setError("Failed to load tasks.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
+    fetchTasks(); // Initial fetch when the component mounts
   }, []);
 
-  // Handle adding tasks
+  // Handle adding tasks (moved here from BookingForm)
   const addTaskToUnclaimed = async (formData: Omit<Task, "id">) => {
     try {
-      const response = await api.post("/tasks", formData); 
-      const newTask = response.data;
-      setTasks((prev) => ({
-        ...prev,
-        unclaimed: [...prev.unclaimed, newTask],
-      }));
+      await api.post("/tasks", formData);
+      fetchTasks(); // Re-fetch tasks after adding a new one
     } catch (err) {
       setError("Failed to add task.");
       console.error(err);
@@ -70,25 +67,9 @@ const App: React.FC = () => {
   // Handle updating tasks
   const updateTask = async (updatedTask: Task, newStatus: string) => {
     try {
-      // Update the task via the API
-      const response = await api.put(`/tasks/${updatedTask.id}`, { ...updatedTask, status: newStatus });
-      const updatedTaskData = response.data;
-
-      setTasks((prev) => {
-        const updatedTasks = { ...prev };
-        // Remove the task from its old status
-        Object.keys(prev).forEach((status) => {
-          updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
-            (task) => task.id !== updatedTaskData.id
-          );
-        });
-
-        // Add the updated task to its new status
-        updatedTasks[newStatus as keyof typeof tasks].push(updatedTaskData);
-        return updatedTasks;
-      });
-
-      setSelectedTask(null);
+      await api.put(`/tasks/${updatedTask.id}`, { ...updatedTask, status: newStatus });
+      fetchTasks(); // Re-fetch tasks after updating a task
+      setSelectedTask(null); // Close the task popup after update
     } catch (err) {
       setError("Failed to update task.");
       console.error(err);
@@ -99,17 +80,8 @@ const App: React.FC = () => {
   const deleteTask = async (taskId: string) => {
     try {
       await api.delete(`/tasks/${taskId}`); // API call to delete the task
-      setTasks((prev) => {
-        const updatedTasks = { ...prev };
-        Object.keys(prev).forEach((status) => {
-          updatedTasks[status as keyof typeof tasks] = prev[status as keyof typeof tasks].filter(
-            (task) => task.id !== taskId
-          );
-        });
-        return updatedTasks;
-      });
-
-      setSelectedTask(null);
+      fetchTasks(); // Re-fetch tasks after deletion
+      setSelectedTask(null); // Close the task popup after deletion
     } catch (err) {
       setError("Failed to delete task.");
       console.error(err);
