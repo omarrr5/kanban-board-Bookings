@@ -16,7 +16,11 @@ interface FormErrors {
   mobile?: string;
 }
 
-const BookingForm: React.FC = () => {
+interface BookingFormProps {
+  onSubmit: (task: FormData) => void;
+}
+
+const BookingForm: React.FC<BookingFormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     title: '',
@@ -43,7 +47,8 @@ const BookingForm: React.FC = () => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      console.log('Form Submitted:', formData);
+      onSubmit(formData);
+
       setFormData({
         name: '',
         title: '',
@@ -62,7 +67,7 @@ const BookingForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-md space-y-4">
       {['name', 'title', 'age', 'email', 'mobile'].map((field) => (
         <div key={field}>
           <label htmlFor={field} className="block text-sm font-medium text-gray-700 capitalize">
